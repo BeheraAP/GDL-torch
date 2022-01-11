@@ -1,0 +1,12 @@
+# Datasets
+dataset/*
+
+# Stored models
+*torch
+
+# Results
+*png
+*jpg
+
+# Monitoring tool
+monitor
