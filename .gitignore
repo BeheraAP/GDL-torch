@@ -2,11 +2,10 @@
 dataset/*
 
 # Stored models
-*torch
+saved/*
 
 # Results
-*png
-*jpg
+results/
 
 # Monitoring tool
 monitor

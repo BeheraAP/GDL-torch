@@ -8,7 +8,6 @@ import matplotlib.pyplot as pyplot;
 
 device = 'cuda';
 b_size = 32;
-DEBUG = False;
 
 celeb = DataLoader(
 	tv.datasets.CelebA(
@@ -173,13 +172,13 @@ class VAELoss(nn.Module):
 	def __init__(_):
 		super().__init__();
 		_.rl = RMSELoss();
-		_.kl = nn.KLDivLoss();
-		_.ls = nn.LogSoftmax(dim=0);
+		_.kl = nn.KLDivLoss(log_target=True);
+		# _.ls = nn.LogSoftmax(im=0);
 		# _.ce = nn.CrossEntropyLoss();
 
 	def forward(_, y_, y):
-		return _.rl(y_, y)+_.ls(_.kl(y_, y));
-		# return _.rl(y_, y)+_.ce(y_, y);
+		# return _.rl(y_, y)+_.ls(_.kl(y_, y));
+		return _.rl(y_, y)+_.kl(y_, y);
 
 # img = next(iter(celeb))[0].to(device);
 # img = torch.randn(32, 3, 128, 128, device=device);
@@ -194,8 +193,12 @@ vae = VarAE(ls_dim=ls_dim).to(device);
 optimizer = torch.optim.Adam(params=vae.parameters(), lr=5e-4);
 loss_fn = VAELoss();
 
+
+DEBUG = False;
 # Training
 for epoch in range(epochs):
+	if DEBUG:
+		break;
 	counter = 0;
 	for imgc,_ in celeb:
 		img = imgc.to(device);
@@ -211,8 +214,11 @@ for epoch in range(epochs):
 			% (epoch, loss, counter),
 			end='\r', flush=True);
 
-torch.save(vae.state_dict(), "vae-faces:ep=%d,ls=%d.torch"%(epochs,ls_dim));
-vae.load_state_dict(torch.load("vae-faces:ep=%d,ls=%d.torch"%(epochs,ls_dim)));
+if DEBUG:
+	vae.load_state_dict(torch.load("vae-faces:ep=%d,ls=%d.torch"%(epochs,ls_dim)));
+else:
+	torch.save(vae.state_dict(), "vae-faces:ep=%d,ls=%d.torch"%(epochs,ls_dim));
+	vae.load_state_dict(torch.load("vae-faces:ep=%d,ls=%d.torch"%(epochs,ls_dim)));
 
 # Prepare for evaluation
 vae.eval();
